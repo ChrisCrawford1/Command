@@ -1,0 +1,5 @@
+.idea
+.env
+command.exe
+coverage.out
+database.yml
