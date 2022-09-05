@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/ChrisCrawford1/Command/internal/handlers"
-	middleware2 "github.com/ChrisCrawford1/Command/internal/middleware"
+	internalMiddleware "github.com/ChrisCrawford1/Command/internal/middleware"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"net/http"
@@ -12,7 +12,7 @@ import (
 func Routes(requestHandler *handlers.RequestHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
-	router.Use(middleware2.ContentTypeMiddleware)
+	router.Use(internalMiddleware.ContentTypeMiddleware)
 
 	router.Mount("/auth", AuthRouter(requestHandler))
 	router.Mount("/users", UserRouter(requestHandler))
