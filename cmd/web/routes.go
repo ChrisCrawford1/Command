@@ -29,7 +29,7 @@ func AuthRouter(requestHandler *handlers.RequestHandler) http.Handler {
 func UserRouter(requestHandler *handlers.RequestHandler) http.Handler {
 	userRouter := chi.NewRouter()
 	userRouter.Group(func(r chi.Router) {
-		r.Use(middleware2.ValidateJwtToken)
+		r.Use(internalMiddleware.ValidateJwtToken)
 		r.Get("/me", requestHandler.GetMe)
 	})
 	return userRouter
