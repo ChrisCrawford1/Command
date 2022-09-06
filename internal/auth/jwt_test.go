@@ -56,11 +56,29 @@ func TestValidateAccessToken(t *testing.T) {
 		userId, ok := claims["userId"]
 
 		if !ok {
-			t.Error("Expected to recive a userId in claims, received none")
+			t.Error("Expected to receive a userId in claims, received none")
 		}
 
 		if userId != model.UUID.String() {
 			t.Error("Expected user id in claims to match user, they did not")
+		}
+	})
+
+	t.Run("Will return an error for an incorrect signing method", func(t *testing.T) {
+		wrongSigningMethodToken := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjI0NTAwNzQsInVzZXJJZCI6ImU1YTJmOTA1LTg3ZjItNGUzZC04OGNlLTVlYjU1MjMzMDEwOCJ9.GRnBq2_SA607G1nB_LWevdPUaBtbQc4JC_2YoEXyHmxr7ph73w5wQP2MMcgpBeg6zdrj9Qkb9 - NEUdGTMOFfRw"
+		_, _, err := ValidateAccessToken(wrongSigningMethodToken)
+
+		if err == nil {
+			t.Error("Expected an error, got none")
+		}
+	})
+
+	t.Run("Will return false if token is not valid", func(t *testing.T) {
+		expiredToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NjIyOTkwNTUsInVzZXJJZCI6ImZhMjEyYThjLTZjZDYtNDk5MS05MTUwLWQxOWZjZTNhMjRlOSJ9.OHAnhNKyC2etsq67nEaqlnHBQDBgW1ZsSxiljz4ZAb8"
+		isValid, _, _ := ValidateAccessToken(expiredToken)
+
+		if isValid {
+			t.Error("Expected false, got true")
 		}
 	})
 }
