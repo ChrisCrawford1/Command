@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/ChrisCrawford1/Command/internal/middleware"
 	"github.com/ChrisCrawford1/Command/internal/models"
@@ -113,6 +114,32 @@ func TestServer_GetUser(t *testing.T) {
 
 		if rec.Code != http.StatusNotFound {
 			t.Errorf("Expected a response code of 404, received %d", rec.Code)
+		}
+	})
+}
+
+func TestRequestHandler_GetMe(t *testing.T) {
+	t.Run("Will a 200 when fetching the logged in user", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/users/me", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+		validToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI1NzM1NTYsInVzZXJJZCI6ImZmMjc3N2QyLWE2NjgtNGIzYS05MDEyLTU0ZmM5NmJjMmNmMiJ9.w5CkYlZ0z4PvBVDoMurL1mijE-9CHJsGeo4OESQcdVA"
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", loggedInUUID.String())
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+
+		server := RequestHandler{Users: &MockUserModel{}}
+
+		server.GetMe(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("Expected a response code of 200, received %d", rec.Code)
 		}
 	})
 }
