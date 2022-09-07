@@ -21,7 +21,8 @@ func main() {
 	}
 
 	requestHandler := &handlers.RequestHandler{
-		Users: models.UserModel{DB: db},
+		Commands: models.CommandModel{DB: db},
+		Users:    models.UserModel{DB: db},
 	}
 
 	log.Println("Starting server on port 8000...")

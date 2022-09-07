@@ -15,6 +15,7 @@ func Routes(requestHandler *handlers.RequestHandler) http.Handler {
 	router.Use(internalMiddleware.ContentTypeMiddleware)
 
 	router.Mount("/auth", AuthRouter(requestHandler))
+	router.Mount("/commands", CommandRouter(requestHandler))
 	router.Mount("/users", UserRouter(requestHandler))
 
 	return router
@@ -23,6 +24,16 @@ func Routes(requestHandler *handlers.RequestHandler) http.Handler {
 func AuthRouter(requestHandler *handlers.RequestHandler) http.Handler {
 	authRouter := chi.NewRouter()
 	authRouter.Post("/login", requestHandler.Login)
+	return authRouter
+}
+
+func CommandRouter(requestHandler *handlers.RequestHandler) http.Handler {
+	authRouter := chi.NewRouter()
+	authRouter.Group(func(r chi.Router) {
+		r.Use(internalMiddleware.ValidateJwtToken)
+		authRouter.Post("/create", requestHandler.CreateCommand)
+		authRouter.Get("/{uuid}", requestHandler.GetCommand)
+	})
 	return authRouter
 }
 
