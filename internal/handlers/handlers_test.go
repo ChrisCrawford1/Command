@@ -39,7 +39,9 @@ func (m *MockUserModel) GetByEmail(email string) (models.User, error) {
 }
 
 func (m *MockUserModel) GetByUUID(uuid string) (models.User, error) {
-	return models.User{
+	users := map[string]models.User{}
+
+	users[loggedInUUID.String()] = models.User{
 		ID:        1,
 		UUID:      loggedInUUID,
 		Name:      "John",
@@ -47,7 +49,13 @@ func (m *MockUserModel) GetByUUID(uuid string) (models.User, error) {
 		Password:  "$2a$12$.PLe8D00F8qEfHWQVzq8u.7qi397Cy22KaDD5F1Ken97/pgQjk8Qu",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-	}, nil
+	}
+
+	if val, ok := users[uuid]; ok {
+		return val, nil
+	}
+
+	return models.User{}, nil
 }
 
 func TestServer_GetUser(t *testing.T) {
@@ -140,6 +148,30 @@ func TestRequestHandler_GetMe(t *testing.T) {
 
 		if rec.Code != http.StatusOK {
 			t.Errorf("Expected a response code of 200, received %d", rec.Code)
+		}
+	})
+
+	t.Run("Will a 404 if userId in context doesnt match", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/users/me", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+		validToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjI1NzM1NTYsInVzZXJJZCI6ImZmMjc3N2QyLWE2NjgtNGIzYS05MDEyLTU0ZmM5NmJjMmNmMiJ9.w5CkYlZ0z4PvBVDoMurL1mijE-9CHJsGeo4OESQcdVA"
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", "failure-waiting-to-happen")
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+
+		server := RequestHandler{Users: &MockUserModel{}}
+
+		server.GetMe(rec, req)
+
+		if rec.Code != http.StatusNotFound {
+			t.Errorf("Expected a response code of 404, received %d", rec.Code)
 		}
 	})
 }
