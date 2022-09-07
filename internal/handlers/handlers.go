@@ -95,6 +95,7 @@ func (handler *RequestHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	if foundUser == (models.User{}) {
 		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(responses.Error{Message: "User could not be found"})
 		return
 	}
 
