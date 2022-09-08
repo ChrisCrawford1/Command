@@ -40,6 +40,10 @@ type CommandDTO struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
+type CommandDtoList struct {
+	Commands []CommandDTO `json:"commands"`
+}
+
 func (command *Command) AsDTO() CommandDTO {
 	return CommandDTO{
 		UUID:        command.UUID,
@@ -104,4 +108,35 @@ func (m CommandModel) GetByUUID(uuid string) (Command, error) {
 	}
 
 	return command, nil
+}
+
+func (m CommandModel) GetAll() []*Command {
+	defaultLimit := 20
+	commands := make([]*Command, 0)
+	stmt, err := m.DB.Prepare("SELECT * FROM commands LIMIT $1")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rows, _ := stmt.Query(defaultLimit)
+
+	for rows.Next() {
+		command := new(Command)
+		if scanErr := rows.Scan(
+			&command.ID,
+			&command.UUID,
+			&command.Name,
+			&command.Description,
+			&command.Language,
+			&command.Syntax,
+			&command.CreatedAt,
+			&command.UpdatedAt,
+		); scanErr != nil {
+			log.Fatal(err)
+		}
+		commands = append(commands, command)
+	}
+
+	return commands
 }
