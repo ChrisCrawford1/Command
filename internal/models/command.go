@@ -13,10 +13,10 @@ type CommandModel struct {
 }
 
 type CommandCreationRequest struct {
-	Name        string `json:"name"`
-	Language    string `json:"language"`
+	Name        string `json:"name" validate:"required"`
+	Language    string `json:"language" validate:"required"`
 	Description string `json:"description"`
-	Syntax      string `json:"syntax"`
+	Syntax      string `json:"syntax" validate:"required"`
 }
 
 type Command struct {

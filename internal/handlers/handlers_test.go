@@ -266,6 +266,65 @@ func TestJwtValidationOnRequest(t *testing.T) {
 	})
 }
 
+func TestRequestHandler_CreateCommand(t *testing.T) {
+	t.Run("Will create a command when all fields validate", func(t *testing.T) {
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+
+		postBody := map[string]interface{}{
+			"name":        "Python print string",
+			"language":    "Python",
+			"description": "Output something to the stdout",
+			"syntax":      "print(variable)",
+		}
+
+		body, _ := json.Marshal(postBody)
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/commands/create", bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", loggedInUUID.String())
+		req = req.WithContext(ctx)
+
+		server := RequestHandler{Commands: &MockCommandModel{}}
+
+		server.CreateCommand(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("Expected a response code of 200, received %d", rec.Code)
+		}
+	})
+
+	t.Run("Will return a 422 if required fields are missing", func(t *testing.T) {
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+
+		postBody := map[string]interface{}{
+			"language":    "Python",
+			"description": "Output something to the stdout",
+			"syntax":      "print(variable)",
+		}
+
+		body, _ := json.Marshal(postBody)
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/commands/create", bytes.NewReader(body))
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", loggedInUUID.String())
+		req = req.WithContext(ctx)
+
+		server := RequestHandler{Commands: &MockCommandModel{}}
+
+		server.CreateCommand(rec, req)
+
+		if rec.Code != http.StatusUnprocessableEntity {
+			t.Errorf("Expected a response code of 422, received %d", rec.Code)
+		}
+	})
+}
+
 func TestRequestHandler_GetCommand(t *testing.T) {
 	t.Run("Will fetch a command when it exists", func(t *testing.T) {
 		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")

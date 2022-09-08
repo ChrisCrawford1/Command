@@ -6,6 +6,7 @@ import (
 	"github.com/ChrisCrawford1/Command/internal/models"
 	"github.com/ChrisCrawford1/Command/internal/responses"
 	"github.com/go-chi/chi"
+	"github.com/go-playground/validator"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -31,6 +32,14 @@ func (handler *RequestHandler) CreateCommand(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	validate := validator.New()
+
+	if validationErr := validate.Struct(creationRequest); validationErr != nil {
+		returnableErrors, _ := responses.ProcessErrors(validationErr)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(returnableErrors)
+		return
+	}
 	_, err = handler.Commands.CreateCommand(creationRequest)
 
 	if err != nil {
