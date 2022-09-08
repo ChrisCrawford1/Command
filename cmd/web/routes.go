@@ -32,6 +32,7 @@ func CommandRouter(requestHandler *handlers.RequestHandler) http.Handler {
 	authRouter.Group(func(r chi.Router) {
 		r.Use(internalMiddleware.ValidateJwtToken)
 		authRouter.Post("/create", requestHandler.CreateCommand)
+		authRouter.Get("/all", requestHandler.GetAllCommands)
 		authRouter.Get("/{uuid}", requestHandler.GetCommand)
 	})
 	return authRouter

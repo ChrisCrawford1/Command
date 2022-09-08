@@ -12,6 +12,10 @@ type UserLoginRequest struct {
 	Password string `json:"password"`
 }
 
+type UserLoginResponse struct {
+	AccessToken string `json:"accessToken"`
+}
+
 type User struct {
 	ID        int
 	UUID      uuid.UUID

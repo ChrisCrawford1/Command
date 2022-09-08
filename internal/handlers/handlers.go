@@ -15,6 +15,7 @@ type RequestHandler struct {
 	Commands interface {
 		CreateCommand(creationRequest models.CommandCreationRequest) (bool, error)
 		GetByUUID(uuid string) (models.Command, error)
+		GetAll() []*models.Command
 	}
 	Users interface {
 		GetByEmail(email string) (models.User, error)
@@ -67,6 +68,18 @@ func (handler *RequestHandler) GetCommand(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(foundCommand.AsDTO())
 }
 
+func (handler *RequestHandler) GetAllCommands(w http.ResponseWriter, r *http.Request) {
+	allCommands := handler.Commands.GetAll()
+	commandDtos := make([]models.CommandDTO, 0)
+
+	for _, command := range allCommands {
+		commandDtos = append(commandDtos, command.AsDTO())
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(models.CommandDtoList{Commands: commandDtos})
+}
+
 func (handler *RequestHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var login models.UserLoginRequest
 	err := json.NewDecoder(r.Body).Decode(&login)
@@ -96,7 +109,7 @@ func (handler *RequestHandler) Login(w http.ResponseWriter, r *http.Request) {
 	accessToken := auth.GenerateAccessToken(foundUser)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(accessToken))
+	json.NewEncoder(w).Encode(models.UserLoginResponse{AccessToken: accessToken})
 }
 
 func (handler *RequestHandler) GetMe(w http.ResponseWriter, r *http.Request) {

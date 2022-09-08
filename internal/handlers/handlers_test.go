@@ -87,6 +87,25 @@ func (m *MockCommandModel) CreateCommand(creationRequest models.CommandCreationR
 	return true, nil
 }
 
+func (m *MockCommandModel) GetAll() []*models.Command {
+	commands := make([]*models.Command, 0)
+
+	command := models.Command{
+		ID:          1,
+		UUID:        existingCommandUUID,
+		Name:        "Go Test",
+		Language:    "Golang",
+		Description: "Run all go tests in all sub directories",
+		Syntax:      "go test ./...",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	commands = append(commands, &command)
+
+	return commands
+}
+
 func TestServer_GetUser(t *testing.T) {
 	t.Run("Will get a JWT for stored user with correct credentials with 200", func(t *testing.T) {
 		postBody := map[string]interface{}{
@@ -200,6 +219,28 @@ func TestRequestHandler_GetMe(t *testing.T) {
 
 		if rec.Code != http.StatusNotFound {
 			t.Errorf("Expected a response code of 404, received %d", rec.Code)
+		}
+	})
+}
+
+func TestRequestHandler_GetAllCommands(t *testing.T) {
+	t.Run("Will return 20 commands at a time", func(t *testing.T) {
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/commands/all", nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", loggedInUUID.String())
+		req = req.WithContext(ctx)
+
+		server := RequestHandler{Commands: &MockCommandModel{}}
+
+		server.GetAllCommands(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("Expected a response code of 200, received %d", rec.Code)
 		}
 	})
 }
