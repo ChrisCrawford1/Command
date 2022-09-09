@@ -140,3 +140,24 @@ func (m CommandModel) GetAll() []*Command {
 
 	return commands
 }
+
+func (m CommandModel) DeleteCommand(uuid string) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmt := `DELETE FROM commands WHERE uuid = $1`
+
+	row, _ := m.DB.ExecContext(
+		ctx,
+		stmt,
+		uuid,
+	)
+
+	x, err := row.RowsAffected()
+
+	if err != nil || x != 1 {
+		return false
+	}
+
+	return true
+}
