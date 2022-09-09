@@ -106,6 +106,13 @@ func (m *MockCommandModel) GetAll() []*models.Command {
 	return commands
 }
 
+func (m *MockCommandModel) DeleteCommand(uuid string) bool {
+	if uuid == existingCommandUUID.String() {
+		return true
+	}
+	return false
+}
+
 func TestServer_GetUser(t *testing.T) {
 	t.Run("Will get a JWT for stored user with correct credentials with 200", func(t *testing.T) {
 		postBody := map[string]interface{}{
@@ -406,6 +413,59 @@ func TestRequestHandler_GetCommand(t *testing.T) {
 		server := RequestHandler{Commands: &MockCommandModel{}}
 
 		server.GetCommand(rec, req)
+
+		if rec.Code != http.StatusNotFound {
+			t.Errorf("Expected a response code of 404, received %d", rec.Code)
+		}
+	})
+}
+
+func TestRequestHandler_DeleteCommand(t *testing.T) {
+	t.Run("Will delete a command when it exists", func(t *testing.T) {
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/commands/"+existingCommandUUID.String(), nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		// As well as passing in the uuid above, we also need to "set" the chi context variables for testing
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("uuid", existingCommandUUID.String())
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", loggedInUUID.String())
+		req = req.WithContext(ctx)
+
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+		server := RequestHandler{Commands: &MockCommandModel{}}
+
+		server.DeleteCommand(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Errorf("Expected a response code of 204, received %d", rec.Code)
+		}
+	})
+
+	t.Run("Will return not found if command does not exist", func(t *testing.T) {
+		t.Setenv("JWT_SIGN", "INSECURE_SIGN_STRING")
+		wrongUuid := uuid.NewV4().String()
+
+		rec := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/commands/"+wrongUuid, nil)
+		req.Header.Set("Authorization", "Bearer "+validToken)
+
+		// As well as passing in the uuid above, we also need to "set" the chi context variables for testing
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("uuid", wrongUuid)
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, "userId", loggedInUUID.String())
+		req = req.WithContext(ctx)
+
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+		server := RequestHandler{Commands: &MockCommandModel{}}
+
+		server.DeleteCommand(rec, req)
 
 		if rec.Code != http.StatusNotFound {
 			t.Errorf("Expected a response code of 404, received %d", rec.Code)

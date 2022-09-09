@@ -26,7 +26,6 @@ func ValidateJwtToken(next http.Handler) http.Handler {
 			isValid, claims, err := auth.ValidateAccessToken(splitToken)
 
 			if err != nil {
-				//http.Error(w, "Invalid credentials", 401)
 				w.WriteHeader(http.StatusUnauthorized)
 				json.NewEncoder(w).Encode(responses.Error{Message: "Invalid credentials"})
 				return

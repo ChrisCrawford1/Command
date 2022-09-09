@@ -28,21 +28,18 @@ func AuthRouter(requestHandler *handlers.RequestHandler) http.Handler {
 }
 
 func CommandRouter(requestHandler *handlers.RequestHandler) http.Handler {
-	authRouter := chi.NewRouter()
-	authRouter.Group(func(r chi.Router) {
-		r.Use(internalMiddleware.ValidateJwtToken)
-		authRouter.Post("/create", requestHandler.CreateCommand)
-		authRouter.Get("/all", requestHandler.GetAllCommands)
-		authRouter.Get("/{uuid}", requestHandler.GetCommand)
-	})
-	return authRouter
+	commandRouter := chi.NewRouter()
+	commandRouter.Use(internalMiddleware.ValidateJwtToken)
+	commandRouter.Post("/create", requestHandler.CreateCommand)
+	commandRouter.Get("/all", requestHandler.GetAllCommands)
+	commandRouter.Get("/{uuid}", requestHandler.GetCommand)
+	commandRouter.Delete("/{uuid}", requestHandler.DeleteCommand)
+	return commandRouter
 }
 
 func UserRouter(requestHandler *handlers.RequestHandler) http.Handler {
 	userRouter := chi.NewRouter()
-	userRouter.Group(func(r chi.Router) {
-		r.Use(internalMiddleware.ValidateJwtToken)
-		r.Get("/me", requestHandler.GetMe)
-	})
+	userRouter.Use(internalMiddleware.ValidateJwtToken)
+	userRouter.Get("/me", requestHandler.GetMe)
 	return userRouter
 }

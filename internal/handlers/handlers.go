@@ -16,6 +16,7 @@ type RequestHandler struct {
 		CreateCommand(creationRequest models.CommandCreationRequest) (bool, error)
 		GetByUUID(uuid string) (models.Command, error)
 		GetAll() []*models.Command
+		DeleteCommand(uuid string) bool
 	}
 	Users interface {
 		GetByEmail(email string) (models.User, error)
@@ -78,6 +79,20 @@ func (handler *RequestHandler) GetAllCommands(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(models.CommandDtoList{Commands: commandDtos})
+}
+
+func (handler *RequestHandler) DeleteCommand(w http.ResponseWriter, r *http.Request) {
+	uuid := chi.URLParam(r, "uuid")
+
+	deleteSuccessful := handler.Commands.DeleteCommand(uuid)
+
+	if !deleteSuccessful {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(responses.Error{Message: "Could not delete command"})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (handler *RequestHandler) Login(w http.ResponseWriter, r *http.Request) {
