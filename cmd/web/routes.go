@@ -5,7 +5,9 @@ import (
 	internalMiddleware "github.com/ChrisCrawford1/Command/internal/middleware"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"net/http"
+	"os"
 )
 
 // Routes - Controls the main Chi Router
@@ -13,6 +15,12 @@ func Routes(requestHandler *handlers.RequestHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(internalMiddleware.ContentTypeMiddleware)
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{os.Getenv("ALLOWED_ORIGINS")},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "Access-Control-Allow-Origin"},
+		MaxAge:         300, // Maximum value not ignored by any of major browsers
+	}))
 
 	router.Mount("/auth", AuthRouter(requestHandler))
 	router.Mount("/commands", CommandRouter(requestHandler))
