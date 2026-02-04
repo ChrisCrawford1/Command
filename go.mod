@@ -1,6 +1,6 @@
 module github.com/ChrisCrawford1/Command
 
-go 1.18
+go 1.24.0
 
 require (
 	github.com/go-chi/chi v1.5.4
@@ -10,7 +10,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.6
 	github.com/satori/go.uuid v1.2.0
-	golang.org/x/crypto v0.35.0
+	golang.org/x/crypto v0.45.0
 )
 
 require (
